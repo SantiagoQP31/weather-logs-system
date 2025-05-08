@@ -2,18 +2,7 @@
 
 Este diagrama muestra el flujo general del sistema y cómo interactúan los componentes:
 
-```ascii
-+-------------+          +--------------+          +--------------+          +------------+
-|             |          |              |          |              |          |            |
-|  Producer   +--------->+   RabbitMQ   +--------->+   Consumer   +--------->+ PostgreSQL |
-| (send.py)   |  publica | (Exchange:   |  consume | (consume.py) |  inserta | (weather_  |
-|             |  mensajes| weather_logs)|  mensajes |              |  datos   |  logs)     |
-+-------------+          +--------------+          +--------------+          +------------+
-         |                                                                       ^          
-         |                                                                       |          
-         |_______________________________________________________________________|          
-                                      mensajes ACK                              
-```
+![Diagrama de Flujo Weather Logs System](docs\images\architecture_weather_logs_system.drawio.png)
 
 ## Descripción de componentes
 
