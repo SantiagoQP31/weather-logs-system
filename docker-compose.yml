@@ -1,7 +1,7 @@
-version: '3.8'
 services:
   rabbitmq:
     image: rabbitmq:3.11-management
+    container_name: weather_logs_system_rabbitmq
     ports:
       - "5672:5672"    # AMQP clients
       - "15672:15672"  # Management UI
@@ -12,8 +12,8 @@ services:
       - rabbitmq_data:/var/lib/rabbitmq # Guarantees data persistence
       
   postgres:
-    imagen: postgres:15
-    container_name: postgres
+    image: postgres:15
+    container_name: weather_logs_system_postgres
     restart: always                     # Restart container if it stops
     environment:
       POSTGRES_USER: weather_user       # User that creates the database
@@ -25,7 +25,19 @@ services:
       - postgres_data:/var/lib/postgresql/data # Guarantees data persistence
       - ./postgres/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro # Initialize the database with a script 
 
-# producer:
+  producer:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    container_name: weather_logs_system_producer
+    restart: on-failure
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_EXCHANGE: weather_logs
+      RABBITMQ_ROUTING_KEY: weather.station
+    depends_on:
+      - rabbitmq
 # consumer:
 
 volumes:
