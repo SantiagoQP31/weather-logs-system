@@ -46,7 +46,7 @@ def generar_datos_estacion():
     return {
         "station_id": f"ST-{random.randint(1000, 9999)}",
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "temperature": round(random.uniform(-30.0, 60.0), 2),
+        "temperature": round(random.uniform(-30.0, 60.0), 2), 
         "humidity": round(random.uniform(0.0, 100.0), 2),
         "pressure": round(random.uniform(700.0, 1100.0), 2)
     }

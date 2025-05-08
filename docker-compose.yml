@@ -30,7 +30,7 @@ services:
       context: ./producer
       dockerfile: Dockerfile
     container_name: weather_logs_system_producer
-    restart: on-failure
+    restart: always
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
