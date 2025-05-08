@@ -12,8 +12,8 @@
 /docs              # Documentación del proyecto
   ├── contract.md  # Contrato de mensajes JSON y validación
   ├── tests.md     # Pruebas End-to-End documentadas
-  └── images/      # Capturas y diagramas (p.ej. RabbitMQ, flujos)
-
+  └── images/        # Capturas y diagramas (p.ej. RabbitMQ, flujos)
+  
 docker-compose.yml # Orquestación de todos los servicios
 README.md          # Documentación general y enlaces a secciones clave
 ```
