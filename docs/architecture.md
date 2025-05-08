@@ -2,7 +2,7 @@
 
 Este diagrama muestra el flujo general del sistema y cómo interactúan los componentes:
 
-![Diagrama de Flujo Weather Logs System](docs\images\architecture_weather_logs_system.drawio.png)
+![Diagrama de Flujo Weather Logs System](docs/images/architecture_weather_logs_system.drawio)
 
 ## Descripción de componentes
 
