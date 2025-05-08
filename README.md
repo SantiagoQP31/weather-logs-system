@@ -8,7 +8,8 @@
 - `consumer/`  
 - `rabbitmq/`  
 - `postgres/`  
-- `scripts/`  
+- `documents/`
+- `monitoring/`   
 
 ## Ramas
 - `main`: código estable listo para producción  
