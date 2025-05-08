@@ -2,10 +2,9 @@
 
 Este diagrama muestra el flujo general del sistema y cómo interactúan los componentes:
 
-![Diagrama de Flujo Weather Logs System](docs/images/architecture_weather_logs_system.drawio)
+![Diagrama de Flujo Weather Logs System](images/architecture_weather_logs_system.drawio.png)
 
 ## Descripción de componentes
-
 1. **Producer** (`producer/send.py`):
    - Genera y envía mensajes JSON al `exchange` **weather_logs** en RabbitMQ.
    - Declara el exchange como durable para persistencia de mensajes.
