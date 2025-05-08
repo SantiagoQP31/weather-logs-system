@@ -11,9 +11,23 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq # Guarantees data persistence
       
-# postgres:
+  postgres:
+    imagen: postgres:15
+    container_name: postgres
+    restart: always                     # Restart container if it stops
+    environment:
+      POSTGRES_USER: weather_user       # User that creates the database
+      POSTGRES_PASSWORD: weather_pass
+      POSTGRES_DB: weather              # Database name
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Guarantees data persistence
+      - ./postgres/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro # Initialize the database with a script
+
 # producer:
 # consumer:
 
 volumes:
   rabbitmq_data:
+  postgres_data:
