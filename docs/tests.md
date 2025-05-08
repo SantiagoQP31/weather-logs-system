@@ -6,6 +6,8 @@ Este documento resume las pruebas que confirman el flujo completo **Producer →
 
 ## 1. Reinicio limpio del entorno
 
+**Comando en bash:**
+
 ```bash
 $ docker-compose down
 $ docker-compose up --build -d
@@ -34,6 +36,8 @@ dc16b7fcd0a0   rabbitmq:3.11-management       "docker-entrypoint.s…"   20 seco
 
 ## 2. Publicación de mensajes (Producer)
 
+**Comando en bash:**
+
 ```bash
 $ docker logs -f weather_logs_system_producer
 ```
@@ -56,6 +60,9 @@ $ docker logs -f weahter_logs_system_producer
 ---
 
 ## 3. Consumo y Persistencia (Producer)
+
+**Comando en bash:**
+
 ```bash
 $ docker exec -it postgres \
   psql -U weather_user -d weather \
@@ -88,6 +95,8 @@ context canceled
 
 ## 4. Verificación en PostgreSQL
 
+**Comando en bash:**
+
 ```bash
 $ docker logs -f weather_logs_system_consumer
 ```
@@ -100,7 +109,7 @@ $ docker logs -f weather_logs_system_consumer
 (1 row)
 ```
 
-**Nota:** El hecho de que el contador se muestre en 87, es otra evidencia de la persistencia en la BD, manteniendo lo generado en envíos de mensajes previos.
+**Nota:** El hecho de que el contador se muestre en 87, es otra evidencia de la persistencia y repetibilidad en la BD y el sistema, manteniendo lo generado en envíos de mensajes previos. Aún si los contenedores se reinician y vuelven a construirse.
 
 ---
 
