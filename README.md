@@ -105,6 +105,26 @@ README.md          # Documentación general y enlaces a secciones clave
 
 ---
 
+## 📑 Ejemplos de Mensajes JSON y Capturas de Dashboard
+
+### Ejemplo de mensaje JSON enviado por el Producer
+```json
+{
+  "station_id": "ST-1234",
+  "timestamp": "2025-05-08T12:34:56Z",
+  "temperature": 23.45,
+  "humidity": 56.78,
+  "pressure": 1013.25
+}
+```
+
+### Captura del Dashboard de RabbitMQ
+![RabbitMQ Dashboard mostrando Exchange](docs/images/rabbitmq_exchanges.png)
+![RabbitMQ Dashboard mostrando Colas](docs/images/rabbitmq_queue.png)
+
+> En las capturas se observa el exchange `weather_logs` y la queue `weather_queue` con mensajes publicados y consumidos.
+---
+
 ## 📌 Buenas prácticas
 
 - Usa ramas `develop` para desarrollo y `main` para versiones estables.
