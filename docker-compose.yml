@@ -38,7 +38,29 @@ services:
       RABBITMQ_ROUTING_KEY: weather.station
     depends_on:
       - rabbitmq
-# consumer:
+
+  consumer:
+    build:
+      context: ./consumer
+      dockerfile: Dockerfile
+    container_name: weather_logs_system_consumer
+    restart: on-failure
+    environment:
+      # RabbitMQ
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_EXCHANGE: weather_logs
+      RABBITMQ_ROUTING_KEY: weather.station
+      RABBITMQ_QUEUE: weather_queue
+      # PostgreSQL
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: weather
+      POSTGRES_USER: weather_user
+      POSTGRES_PASSWORD: weather_pass
+    depends_on:
+      - rabbitmq
+      - postgres
 
 volumes:
   rabbitmq_data:
