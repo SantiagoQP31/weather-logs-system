@@ -118,7 +118,7 @@ README.md          # Documentación general y enlaces a secciones clave
 }
 ```
 
-### Captura del Dashboard de RabbitMQ
+### Capturas del Dashboard de RabbitMQ
 ![RabbitMQ Dashboard mostrando Exchange](docs/images/rabbitmq_exchanges.png)
 ![RabbitMQ Dashboard mostrando Colas](docs/images/rabbitmq_queue.png)
 
