@@ -12,8 +12,9 @@
 /docs              # Documentación del proyecto
   ├── contract.md  # Contrato de mensajes JSON y validación
   ├── tests.md     # Pruebas End-to-End documentadas
-  └── images/        # Capturas y diagramas (p.ej. RabbitMQ, flujos)
-  
+  ├── architecture.md # Diagrama ASCII de arquitectura
+  └── images/      # Capturas y diagramas exportados desde Draw.io
+
 docker-compose.yml # Orquestación de todos los servicios
 README.md          # Documentación general y enlaces a secciones clave
 ```
@@ -42,9 +43,8 @@ README.md          # Documentación general y enlaces a secciones clave
    - URL: http://localhost:15672
    - Usuario: `guest` / Contraseña: `guest`
 
-5. Ejecutar pruebas e2e documentadas:
+5. Revisar pruebas E2E documentadas:
    ```bash
-   # Consulta pruebas manuales
    less docs/tests.md
    ```
 
@@ -88,8 +88,9 @@ README.md          # Documentación general y enlaces a secciones clave
 - **Pruebas End-to-End**: Pasos, comandos, resultados esperados y observados.  
   ➡️ [Ver `docs/tests.md`](docs/tests.md)
 
-- **Diagrama de Arquitectura**: Flujo Producer → RabbitMQ → Consumer → PostgreSQL.  
-  ➡️ `docs/images/architecture.drawio`
+- **Diagrama de Arquitectura**: Representación visual del flujo Producer → RabbitMQ → Consumer → PostgreSQL.  
+  ➡️ [Ver `docs/architecture.md`](docs/architecture.md)  
+  ➡️ [Ver diagrama exportado](docs/images/architecture_weather_logs_system.drawio.png)
 
 ---
 
@@ -118,11 +119,12 @@ README.md          # Documentación general y enlaces a secciones clave
 }
 ```
 
-### Capturas del Dashboard de RabbitMQ
+### Captura del Dashboard de RabbitMQ
 ![RabbitMQ Dashboard mostrando Exchange](docs/images/rabbitmq_exchanges.png)
 ![RabbitMQ Dashboard mostrando Colas](docs/images/rabbitmq_queue.png)
 
-> En las capturas se observa el exchange `weather_logs` y la queue `weather_queue` con mensajes publicados y consumidos.
+> En las capturas se observan el exchange `weather_logs` y la queue `weather_queue` con mensajes publicados y consumidos.
+
 ---
 
 ## 📌 Buenas prácticas
@@ -134,3 +136,4 @@ README.md          # Documentación general y enlaces a secciones clave
 ---
 
 *Última actualización: 2025-05-08*
+
