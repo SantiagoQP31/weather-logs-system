@@ -62,6 +62,25 @@ services:
       - rabbitmq
       - postgres
 
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: weather_logs_system_api
+    restart: on-failure
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: weather
+      POSTGRES_USER: weather_user
+      POSTGRES_PASSWORD: weather_pass
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
 volumes:
   rabbitmq_data:
   postgres_data:
