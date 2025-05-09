@@ -81,6 +81,25 @@ services:
     depends_on:
       - postgres
 
+  alerter:
+    build:
+      context: ./alerter
+      dockerfile: Dockerfile
+    container_name: weather_logs_system_alerter
+    restart: on-failure
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_EXCHANGE: weather_logs
+      RABBITMQ_ROUTING_KEY: weather.station
+      TEMP_THRESHOLD: 50.0
+      HUM_THRESHOLD: 90.0
+      PRES_THRESHOLD: 1050.0
+      EMAIL_FROM: alerts@weather.com
+      EMAIL_TO: admin@weather.com
+    depends_on:
+      - rabbitmq
+
 volumes:
   rabbitmq_data:
   postgres_data:
