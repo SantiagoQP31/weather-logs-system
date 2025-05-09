@@ -108,13 +108,12 @@ README.md              # Documentación principal y enlaces a secciones clave
 
 * **Diagrama de Arquitectura**: Flujo Producer → RabbitMQ → Consumer → PostgreSQL.
   ➡️ [docs/architecture.md](docs/architecture.md)
-  ➡️ [docs/images/architecture.drawio](docs/images/architecture.drawio)
 
 * **API REST**: Consulta logs y reportes (JSON, CSV, PDF).
   ➡️ [docs/api\_guide.md](docs/api_guide.md)
 
 * **Servicio de Alertas**: Alerta en tiempo real por email simulado.
-  ➡️ [docs/alert\_service.md](docs/alerts_guide.md)
+  ➡️ [docs/alerts\_guide.md](docs/alerts_guide.md)
 
 * **Monitorización**: Métricas con Prometheus y dashboards en Grafana.
   ➡️ [docs/monitoring.md](docs/monitoring.md)
