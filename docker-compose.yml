@@ -30,7 +30,7 @@ services:
       context: ./producer
       dockerfile: Dockerfile
     container_name: weather_logs_system_producer
-    restart: on-failure
+    restart: always
     environment:
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
@@ -99,6 +99,25 @@ services:
       EMAIL_TO: admin@weather.com
     depends_on:
       - rabbitmq
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: weather_logs_system_prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - producer
+      - consumer
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: weather_logs_system_grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
 
 volumes:
   rabbitmq_data:

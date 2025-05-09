@@ -1,25 +1,21 @@
 """
 consumer/consume.py
-
-Microservicio Consumer para el sistema de logs meteorológicos.
-Recibe mensajes de RabbitMQ, valida los datos y los persiste en PostgreSQL.
+Microservicio Consumer instrumentado con métricas Prometheus.
 """
-
 import os
 import json
-import logging
 import time
-import psycopg2
+import logging
 from dotenv import load_dotenv
+from prometheus_client import Counter, start_http_server
 import pika
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
-# Configurar logging
-logging.basicConfig(
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    level=logging.INFO
-)
+# Configuración de logging
+logging.basicConfig(format="%(asctime)s [%(levelname)s] %(message)s", level=logging.INFO)
 
-# Cargar variables de entorno
+# Carga de .env
 load_dotenv()
 
 # RabbitMQ
@@ -36,30 +32,17 @@ PG_DB = os.getenv("POSTGRES_DB", "weather")
 PG_USER = os.getenv("POSTGRES_USER", "weather_user")
 PG_PASS = os.getenv("POSTGRES_PASSWORD", "weather_pass")
 
-def validar_datos(msg: dict) -> bool:
-    """
-    Valida que cada campo del mensaje esté dentro de los rangos permitidos.
-    Retorna True si es válido, False en caso contrario.
-    """
-    try:
-        temp = float(msg["temperature"])
-        hum = float(msg["humidity"])
-        pres = float(msg["pressure"])
-    except (KeyError, ValueError, TypeError):
-        return False
-
-    if not (-30.0 <= temp <= 60.0):
-        return False
-    if not (0.0 <= hum <= 100.0):
-        return False
-    if not (700.0 <= pres <= 1100.0):
-        return False
-
-    return True
+# Métricas Prometheus
+MSG_RECEIVED = Counter(
+    'weather_messages_received_total', 'Total de mensajes recibidos'
+)
+MSG_ERRORS = Counter(
+    'weather_messages_errors_total', 'Total de mensajes inválidos o con error'
+)
 
 def conectar_postgres():
     """
-    Crea y retorna una conexión a PostgreSQL con reconexión automática simple.
+    Conecta a PostgreSQL con reintentos sencillos.
     """
     while True:
         try:
@@ -77,67 +60,72 @@ def conectar_postgres():
             logging.error(f"Fallo al conectar a Postgres, reintentando en 3s: {e}")
             time.sleep(3)
 
+
+def callback(ch, method, properties, body):
+    """
+    Procesa cada mensaje de RabbitMQ: valida, persiste y actualiza métricas.
+    """
+    try:
+        data = json.loads(body)
+        MSG_RECEIVED.inc()
+    except json.JSONDecodeError:
+        logging.error(f"JSON inválido: {body}")
+        MSG_ERRORS.inc()
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
+
+    if not (
+        -30.0 <= data.get("temperature", -1000) <= 60.0 and
+        0.0 <= data.get("humidity", -1) <= 100.0 and
+        700.0 <= data.get("pressure", 0) <= 1100.0
+    ):
+        logging.error(f"Datos fuera de rango: {data}")
+        MSG_ERRORS.inc()
+        ch.basic_ack(delivery_tag=method.delivery_tag)
+        return
+
+    conn = conectar_postgres()
+    cur = conn.cursor()
+    try:
+        cur.execute(
+            "INSERT INTO weather_logs (timestamp, station_id, temperature, humidity, pressure) VALUES (%s,%s,%s,%s,%s)",
+            (data["timestamp"], data["station_id"], data["temperature"], data["humidity"], data["pressure"])
+        )
+        conn.commit()
+        logging.info(f"Insertado en DB: {data}")
+    except Exception as e:
+        conn.rollback()
+        logging.error(f"Error al insertar en DB: {e}")
+        MSG_ERRORS.inc()
+    finally:
+        cur.close()
+        conn.close()
+
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+
 def main():
     """
-    1. Conecta a RabbitMQ y PostgreSQL.
-    2. Declara exchange y cola, binding.
-    3. Consume mensajes con prefetch_count=1 y ack manual.
-    4. Valida y persiste o descarta y loguea error.
+    Inicia el consumidor y servidor de métricas.
     """
-    # 1) Conexión a RabbitMQ
-    params = pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT)
-    connection = pika.BlockingConnection(params)
-    channel = connection.channel()
+    # Iniciar servidor de métricas en el puerto 8001
+    start_http_server(8001)
+    logging.info("Servidor de métricas del Consumer iniciado en :8001/metrics")
 
-    # 2) Declarar exchange y cola durable
+    # Conexión a RabbitMQ
+    params = pika.ConnectionParameters(host=RABBITMQ_HOST, port=RABBITMQ_PORT)
+    conn = pika.BlockingConnection(params)
+    channel = conn.channel()
+
+    # Declarar exchange y cola
     channel.exchange_declare(exchange=EXCHANGE, exchange_type="direct", durable=True)
     channel.queue_declare(queue=QUEUE_NAME, durable=True)
     channel.queue_bind(queue=QUEUE_NAME, exchange=EXCHANGE, routing_key=ROUTING_KEY)
 
-    # 3) Limitar a 1 mensaje sin ack
     channel.basic_qos(prefetch_count=1)
-
-    # 4) Conectar a Postgres
-    pg_conn = conectar_postgres()
-    pg_cur = pg_conn.cursor()
-
-    def callback(ch, method, properties, body):
-        """
-        Función que procesa cada mensaje recibido.
-        """
-        try:
-            msg = json.loads(body)
-        except json.JSONDecodeError:
-            logging.error(f"JSON inválido: {body}")
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            return
-
-        if not validar_datos(msg):
-            logging.error(f"Datos fuera de rango o mal formados: {msg}")
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            return
-
-        # Insertar en la base
-        try:
-            pg_cur.execute(
-                """
-                INSERT INTO weather_logs (timestamp, station_id, temperature, humidity, pressure)
-                VALUES (%s, %s, %s, %s, %s)
-                """,
-                (msg["timestamp"], msg["station_id"], msg["temperature"],
-                 msg["humidity"], msg["pressure"])
-            )
-            pg_conn.commit()
-            logging.info(f"Insertado en DB: {msg}")
-        except Exception as e:
-            pg_conn.rollback()
-            logging.error(f"Error al insertar en DB: {e} | msg: {msg}")
-        finally:
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-
-    # 5) Iniciar consumo
     channel.basic_consume(queue=QUEUE_NAME, on_message_callback=callback)
-    logging.info("Esperando mensajes. Para salir presiona CTRL+C")
+
+    logging.info("Consumer iniciado. Esperando mensajes...")
     channel.start_consuming()
 
 
