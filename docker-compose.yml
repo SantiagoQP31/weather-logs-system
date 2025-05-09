@@ -1,6 +1,124 @@
-version: '3.8'
 services:
-# rabbitmq:
-# postgres:
-# producer:
-# consumer:
+  rabbitmq:
+    image: rabbitmq:3.11-management
+    container_name: weather_logs_system_rabbitmq
+    ports:
+      - "5672:5672"    # AMQP clients
+      - "15672:15672"  # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq # Guarantees data persistence
+      
+  postgres:
+    image: postgres:15
+    container_name: weather_logs_system_postgres
+    restart: always                     # Restart container if it stops
+    environment:
+      POSTGRES_USER: weather_user       # User that creates the database
+      POSTGRES_PASSWORD: weather_pass
+      POSTGRES_DB: weather              # Database name
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Guarantees data persistence
+      - ./postgres/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql:ro # Initialize the database with a script 
+
+  producer:
+    build:
+      context: ./producer
+      dockerfile: Dockerfile
+    container_name: weather_logs_system_producer
+    restart: always
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_EXCHANGE: weather_logs
+      RABBITMQ_ROUTING_KEY: weather.station
+    depends_on:
+      - rabbitmq
+
+  consumer:
+    build:
+      context: ./consumer
+      dockerfile: Dockerfile
+    container_name: weather_logs_system_consumer
+    restart: on-failure
+    environment:
+      # RabbitMQ
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_EXCHANGE: weather_logs
+      RABBITMQ_ROUTING_KEY: weather.station
+      RABBITMQ_QUEUE: weather_queue
+      # PostgreSQL
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: weather
+      POSTGRES_USER: weather_user
+      POSTGRES_PASSWORD: weather_pass
+    depends_on:
+      - rabbitmq
+      - postgres
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: weather_logs_system_api
+    restart: on-failure
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: weather
+      POSTGRES_USER: weather_user
+      POSTGRES_PASSWORD: weather_pass
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  alerter:
+    build:
+      context: ./alerter
+      dockerfile: Dockerfile
+    container_name: weather_logs_system_alerter
+    restart: on-failure
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_EXCHANGE: weather_logs
+      RABBITMQ_ROUTING_KEY: weather.station
+      TEMP_THRESHOLD: 50.0
+      HUM_THRESHOLD: 90.0
+      PRES_THRESHOLD: 1050.0
+      EMAIL_FROM: alerts@weather.com
+      EMAIL_TO: admin@weather.com
+    depends_on:
+      - rabbitmq
+  
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: weather_logs_system_prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    depends_on:
+      - producer
+      - consumer
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: weather_logs_system_grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+volumes:
+  rabbitmq_data:
+  postgres_data:

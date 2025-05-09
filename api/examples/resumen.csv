@@ -1,0 +1,2 @@
+station_id,from_ts,to_ts,avg_temperature,min_temperature,max_temperature,avg_humidity,min_humidity,max_humidity,avg_pressure,min_pressure,max_pressure,total_readings
+,,,14.793393501805054,-29.91,59.98,49.70797833935018,0.1,99.96,899.8338194945849,700.05,1099.6,1385
