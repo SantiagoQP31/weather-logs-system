@@ -143,8 +143,8 @@ curl -o resumen.pdf "http://localhost:8000/reports/summary/pdf"
 
 Aquí puedes ver ejemplos reales de los archivos generados por la API:
 
-- 📄 [Resumen en CSV](./api/examples/resumen.csv)
-- 📄 [Resumen en PDF](./api/examples/resumen.pdf)
+- 📄 [Resumen en CSV](api/examples/resumen.csv)
+- 📄 [Resumen en PDF](api/examples/resumen.pdf)
 
 Estos archivos fueron generados usando los endpoints `/reports/summary/csv` y `/reports/summary/pdf`, respectivamente.
 
